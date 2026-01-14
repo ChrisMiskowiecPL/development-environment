@@ -1,0 +1,208 @@
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.2
+
+properties:
+  configurationVersion: 0.2.0
+  resources:
+    # Git Configuration
+    - resource: PSDesiredStateConfiguration/Script
+      id: git.config
+      directives:
+        description: Configure Git user name and email
+      settings:
+        GetScript: |
+          @{
+            Name  = (git config --global user.name  2>$null)
+            Email = (git config --global user.email 2>$null)
+          }
+        TestScript: |
+          $name  = (git config --global user.name  2>$null)
+          $email = (git config --global user.email 2>$null)
+          ($name -eq 'Chris Miskowiec') -and ($email -eq 'chris.miskowiec@q2.com')
+        SetScript: |
+          git config --global user.name  "Chris Miskowiec"
+          git config --global user.email "chris.miskowiec@q2.com"
+    
+    # Taskbar Shortcuts
+    - resource: PSDesiredStateConfiguration/Script
+      id: taskbar.shortcuts
+      directives:
+        description: Pin Visual Studio Code to the taskbar
+      settings:
+        GetScript: |
+          $taskbarPath = "$env:APPDATA\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar"
+          $vscodeLnk = Join-Path $taskbarPath "Visual Studio Code.lnk"
+          @{
+            Exists = Test-Path $vscodeLnk
+          }
+        TestScript: |
+          $taskbarPath = "$env:APPDATA\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar"
+          $vscodeLnk = Join-Path $taskbarPath "Visual Studio Code.lnk"
+          Test-Path $vscodeLnk
+        SetScript: |
+          $vscodePath = "$env:LOCALAPPDATA\Programs\Microsoft VS Code\Code.exe"
+          $shell = New-Object -ComObject WScript.Shell
+          $shortcut = $shell.CreateShortcut("$env:APPDATA\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar\Visual Studio Code.lnk")
+          $shortcut.TargetPath = $vscodePath
+          $shortcut.Save()
+
+    # Install FiraCode Nerd Font
+    - resource: PSDesiredStateConfiguration/Script
+      id: firacode
+      directives:
+        description: Install FiraCode Nerd Font from Nerd Fonts GitHub release asset
+        securityContext: elevated
+      settings:
+        GetScript: |
+          $userFonts  = Join-Path $env:LOCALAPPDATA "Microsoft\Windows\Fonts"
+          $sysFonts   = Join-Path $env:WINDIR "Fonts"
+
+          $paths = @($userFonts, $sysFonts) | Where-Object { Test-Path $_ }
+
+          $ttfFound = $false
+          foreach ($p in $paths) {
+            if (Get-ChildItem -Path $p -Filter "FiraCodeNerdFont*.ttf" -ErrorAction SilentlyContinue) {
+              $ttfFound = $true
+              break
+            }
+          }
+
+          return @{
+            Result = if ($ttfFound) { "Present" } else { "Absent" }
+            CheckedPaths = ($paths -join "; ")
+          }
+        TestScript: |
+          $userFonts  = Join-Path $env:LOCALAPPDATA "Microsoft\Windows\Fonts"
+          $sysFonts   = Join-Path $env:WINDIR "Fonts"
+
+          $paths = @($userFonts, $sysFonts) | Where-Object { Test-Path $_ }
+
+          foreach ($p in $paths) {
+            if (Get-ChildItem -Path $p -Filter "FiraCodeNerdFont*.ttf" -ErrorAction SilentlyContinue) {
+              return $true
+            }
+          }
+        SetScript: |
+          $zip = Join-Path $env:TEMP "FiraCode.zip"
+          $extract = Join-Path $env:TEMP "FiraCodeNerdFont"
+          $url = "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/FiraCode.zip"
+
+          if (Test-Path $extract) { Remove-Item $extract -Recurse -Force }
+          if (Test-Path $zip) { Remove-Item $zip -Force }
+
+          Invoke-WebRequest -Uri $url -OutFile $zip
+          Expand-Archive -LiteralPath $zip -DestinationPath $extract -Force
+
+          $fonts = Get-ChildItem -Path $extract -Recurse -Include *.ttf -ErrorAction Stop
+          $shell = New-Object -ComObject Shell.Application
+          $fontsFolder = $shell.Namespace(0x14) # Windows Fonts folder
+
+          foreach ($f in $fonts) {
+            # CopyHere handles registration into the Fonts folder
+            $fontsFolder.CopyHere($f.FullName)
+          }
+    
+    # Configure Windows Terminal to use FiraCode Nerd Font as default profile font
+    - resource: PSDesiredStateConfiguration/Script
+      id: firacode.terminal
+      directives:
+        description: Set Windows Terminal default profile font to FiraCode Nerd Font (and enable ligatures via OpenType features when supported)
+      settings:
+        GetScript: |
+          function Strip-Jsonc([string]$s) {
+            # Remove /* */ comments then // comments (best-effort)
+            $s = [regex]::Replace($s, '(?s)/\*.*?\*/', '')
+            $s = [regex]::Replace($s, '(?m)^\s*//.*$', '')
+            return $s
+          }
+
+          $candidates = @(
+            Join-Path $env:LOCALAPPDATA "Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+            Join-Path $env:LOCALAPPDATA "Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\settings.json"
+          )
+
+          $found = @()
+          foreach ($p in $candidates) {
+            if (Test-Path $p) {
+              try {
+                $raw = Get-Content $p -Raw
+                $obj = (Strip-Jsonc $raw) | ConvertFrom-Json
+                $face = $obj.profiles.defaults.font.face
+                $found += "$p => $face"
+              } catch {
+                $found += "$p => ErrorReading"
+              }
+            }
+          }
+
+          return @{ Result = if ($found.Count -gt 0) { "Checked" } else { "NoSettingsFound" }; Details = ($found -join "`n") }
+        TestScript: |
+          function Strip-Jsonc([string]$s) {
+            $s = [regex]::Replace($s, '(?s)/\*.*?\*/', '')
+            $s = [regex]::Replace($s, '(?m)^\s*//.*$', '')
+            return $s
+          }
+
+          $desiredFace = "FiraCode Nerd Font"
+
+          $candidates = @(
+            Join-Path $env:LOCALAPPDATA "Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+            Join-Path $env:LOCALAPPDATA "Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\settings.json"
+          )
+
+          $anyFound = $false
+          foreach ($p in $candidates) {
+            if (Test-Path $p) {
+              $anyFound = $true
+              try {
+                $raw = Get-Content $p -Raw
+                $obj = (Strip-Jsonc $raw) | ConvertFrom-Json
+                if ($obj.profiles.defaults.font.face -ne $desiredFace) { return $false }
+
+                # If features exist, ensure liga is on; if features absent, that's fine (Terminal may still ligate by default)
+                $features = $obj.profiles.defaults.font.features
+                if ($null -ne $features) {
+                  if ($features.liga -ne 1) { return $false }
+                }
+              } catch {
+                return $false
+              }
+            }
+          }
+
+          return $anyFound
+        SetScript: |
+          function Strip-Jsonc([string]$s) {
+            $s = [regex]::Replace($s, '(?s)/\*.*?\*/', '')
+            $s = [regex]::Replace($s, '(?m)^\s*//.*$', '')
+            return $s
+          }
+
+          $desiredFace = "FiraCode Nerd Font"
+
+          $candidates = @(
+            Join-Path $env:LOCALAPPDATA "Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+            Join-Path $env:LOCALAPPDATA "Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\settings.json"
+          )
+
+          foreach ($p in $candidates) {
+            if (!(Test-Path $p)) { continue }
+
+            $raw = Get-Content $p -Raw
+            $obj = (Strip-Jsonc $raw) | ConvertFrom-Json
+
+            if ($null -eq $obj.profiles) { $obj | Add-Member -NotePropertyName "profiles" -NotePropertyValue ([pscustomobject]@{}) -Force }
+            if ($null -eq $obj.profiles.defaults) { $obj.profiles | Add-Member -NotePropertyName "defaults" -NotePropertyValue ([pscustomobject]@{}) -Force }
+            if ($null -eq $obj.profiles.defaults.font) { $obj.profiles.defaults | Add-Member -NotePropertyName "font" -NotePropertyValue ([pscustomobject]@{}) -Force }
+
+            # Set face
+            $obj.profiles.defaults.font | Add-Member -NotePropertyName "face" -NotePropertyValue $desiredFace -Force
+
+            # Best-effort: enable ligatures via OpenType features if Terminal supports it
+            if ($null -eq $obj.profiles.defaults.font.features) {
+              $obj.profiles.defaults.font | Add-Member -NotePropertyName "features" -NotePropertyValue ([pscustomobject]@{}) -Force
+            }
+            $obj.profiles.defaults.font.features | Add-Member -NotePropertyName "liga" -NotePropertyValue 1 -Force
+
+            # Write back as plain JSON (comments will be lost)
+            $obj | ConvertTo-Json -Depth 64 | Set-Content -Path $p -Encoding UTF8
+          }

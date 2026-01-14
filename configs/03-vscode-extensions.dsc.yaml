@@ -1,0 +1,90 @@
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.2
+
+properties:
+  configurationVersion: 0.2.0
+  resources:
+    # VSCode Extensions
+    - resource: Microsoft.VSCode.Dsc/VSCodeExtension
+      requires: psmodule.vscode-dsc
+      directives:
+        description: Install GitLens for enhanced Git integration
+        allowPrerelease: true
+      settings:
+        Name: eamodio.gitlens
+    
+    - resource: Microsoft.VSCode.Dsc/VSCodeExtension
+      directives:
+        description: Install C# language support
+        allowPrerelease: true
+      settings:
+        Name: ms-dotnettools.csharp
+    
+    - resource: Microsoft.VSCode.Dsc/VSCodeExtension
+      directives:
+        description: Install C# dev kit
+        allowPrerelease: true
+      settings:
+        Name: ms-dotnettools.csdevkit
+
+    - resource: Microsoft.VSCode.Dsc/VSCodeExtension
+      directives:
+        description: Install Claude Code extension
+        allowPrerelease: true
+      settings:
+        Name: anthropic.claude-code
+
+    - resource: Microsoft.VSCode.Dsc/VSCodeExtension
+      directives:
+        description: Install Container tools
+        allowPrerelease: true
+      settings:
+        Name: ms-azuretools.vscode-docker
+
+    - resource: Microsoft.VSCode.Dsc/VSCodeExtension
+      directives:
+        description: Install Docker extension
+        allowPrerelease: true
+      settings:
+        Name: ms-azuretools.vscode-docker
+
+    - resource: Microsoft.VSCode.Dsc/VSCodeExtension
+      directives:
+        description: Install PostgreSQL extension
+        allowPrerelease: true
+      settings:
+        Name: ms-ossdata.vscode-pgsql
+
+    - resource: Microsoft.VSCode.Dsc/VSCodeExtension
+      directives:
+        description: Install PowerShell extension
+        allowPrerelease: true
+      settings:
+        Name: ms-vscode.powershell
+
+    - resource: Microsoft.VSCode.Dsc/VSCodeExtension
+      directives:
+        description: Install UUID Generator extension
+        allowPrerelease: true
+      settings:
+        Name: motivesoft.vscode-uuid-generator
+
+    - resource: Microsoft.VSCode.Dsc/VSCodeExtension
+      directives:
+        description: Install Vim emulator
+        allowPrerelease: true
+      settings:
+        Name: vscodevim.vim
+
+    - resource: Microsoft.VSCode.Dsc/VSCodeExtension
+      directives:
+        description: Install Vue language support
+        allowPrerelease: true
+      settings:
+        Name: vue.volar
+
+    - resource: Microsoft.VSCode.Dsc/VSCodeExtension
+      directives:
+        description: Install YAML extension
+        allowPrerelease: true
+      settings:
+        Name: redhat.vscode-yaml
