@@ -73,3 +73,11 @@ properties:
       settings:
         id: Microsoft.VisualStudioCode
         source: winget
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: claude
+      directives:
+        description: Install Claude Code
+      settings:
+        id: Anthropic.ClaudeCode
+        source: winget
