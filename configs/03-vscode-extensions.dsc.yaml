@@ -88,3 +88,10 @@ properties:
         allowPrerelease: true
       settings:
         Name: redhat.vscode-yaml
+
+    - resource: Microsoft.VSCode.Dsc/VSCodeExtension
+      directives:
+        description: Install GitLab Workflow extension
+        allowPrerelease: true
+      settings:
+        Name: gitlab.gitlab-workflow
