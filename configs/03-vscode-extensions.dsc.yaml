@@ -95,3 +95,10 @@ properties:
         allowPrerelease: true
       settings:
         Name: gitlab.gitlab-workflow
+
+    - resource: Microsoft.VSCode.Dsc/VSCodeExtension
+      directives:
+        description: Install Markdown Preview Mermaid Support extension
+        allowPrerelease: true
+      settings:
+        Name: bierner.markdown-mermaid
