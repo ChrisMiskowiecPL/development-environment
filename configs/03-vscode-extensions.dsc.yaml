@@ -102,3 +102,10 @@ properties:
         allowPrerelease: true
       settings:
         Name: bierner.markdown-mermaid
+
+    - resource: Microsoft.VSCode.Dsc/VSCodeExtension
+      directives:
+        description: Install REST Client extension
+        allowPrerelease: true
+      settings:
+        Name: humao.rest-client
