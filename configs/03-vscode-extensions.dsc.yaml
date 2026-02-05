@@ -109,3 +109,10 @@ properties:
         allowPrerelease: true
       settings:
         Name: humao.rest-client
+
+    - resource: Microsoft.VSCode.Dsc/VSCodeExtension
+      directives:
+        description: Install Codex extension
+        allowPrerelease: true
+      settings:
+        Name: openai.chatgpt

@@ -7,7 +7,6 @@ properties:
       id: awscli
       directives:
         description: Install AWS CLI
-        securityContext: elevated
       settings:
         id: Amazon.AWSCLI
         source: winget
@@ -16,7 +15,6 @@ properties:
       id: docker
       directives:
         description: Install Docker Desktop
-        securityContext: elevated
       settings:
         id: Docker.DockerDesktop
         source: winget
@@ -25,7 +23,6 @@ properties:
       id: dotnet.10
       directives:
         description: Install .NET 10 SDK
-        securityContext: elevated
       settings:
         id: Microsoft.DotNet.SDK.10
         source: winget
@@ -34,7 +31,6 @@ properties:
       id: git
       directives:
         description: Install Git
-        securityContext: elevated
       settings:
         id: Git.Git
         source: winget
@@ -43,7 +39,6 @@ properties:
       id: neovim
       directives:
         description: Install NeoVim
-        securityContext: elevated
       settings:
         id: Neovim.Neovim
         source: winget
@@ -52,7 +47,6 @@ properties:
       id: nodejs
       directives:
         description: Install Node.js
-        securityContext: elevated
       settings:
         id: OpenJS.NodeJS
         source: winget
@@ -61,7 +55,6 @@ properties:
       id: powershell
       directives:
         description: Install PowerShell
-        securityContext: elevated
       settings:
         id: Microsoft.PowerShell
         source: winget
@@ -80,4 +73,20 @@ properties:
         description: Install Claude Code
       settings:
         id: Anthropic.ClaudeCode
+        source: winget
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: python
+      directives:
+        description: Install Python
+      settings:
+        id: Python.Python.3.14
+        source: winget
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: codex
+      directives:
+        description: Install Codex
+      settings:
+        id: OpenAI.Codex
         source: winget
